@@ -11,35 +11,24 @@ then
 echo "Building for $1"
 KERNEL_DIR=$PWD
 ANYKERNEL_DIR=$KERNEL_DIR/AnyKernel3
+OUTKERNEL_DIR=$KERNEL_DIR/../out
 DATE=$(date +"%d%m%Y")
 KERNEL_NAME="Havoc"
 DEVICE="$1"
 VER="testing"
-FINAL_ZIP="$KERNEL_NAME-$DEVICE-$DATE-$VER".zip
+FINAL_ZIP="$KERNEL_NAME-$DEVICE-$DATE-$VER.zip"
 
-if [ -e $ANYKERNEL_DIR/Image.gz-dtb ]
-then
-rm $ANYKERNEL_DIR/Image.gz-dtb
-fi
+if [ -e CRSC.sh ]; then . CRSC.sh; fi
+CCACHE=`which ccache`;
+mkdir -p $OUTKERNEL_DIR;
+make O=$OUTKERNEL_DIR clean mrproper;
+rm -rf $ANYKERNEL_DIR/Image.gz*;
 
-if [ -e $KERNEL_DIR/arch/arm64/boot/Image.gz ]
-then
-rm $KERNEL_DIR/arch/arm64/boot/Image.gz 
-fi
-
-if [ -e $KERNEL_DIR/arch/arm64/boot/Image.gz-dtb ]
-then
-rm $KERNEL_DIR/arch/arm64/boot/Image.gz-dtb
-fi
-
-# export CROSS_COMPILE=~/kernel/linaro-64-dev/bin/aarch64-linux-gnu-
-
-make clean mrproper
-make $1_defconfig
-make -j3
+make O=$OUTKERNEL_DIR $1_defconfig;
+/bin/bash -c "(make -j4 -C $KERNEL_DIR O=$OUTKERNEL_DIR CFLAGS_MODULE=\"-fno-pic\" ARCH=arm64 CROSS_COMPILE=\"$CCACHE $CROSS_COMPILE\" CROSS_COMPILE_ARM32=\"$CROSS_COMPILE_ARM32\" Image.gz-dtb)"
 
 {
-cp $KERNEL_DIR/arch/arm64/boot/Image.gz-dtb $ANYKERNEL_DIR/
+cp $OUTKERNEL_DIR/arch/arm64/boot/Image.gz-dtb $ANYKERNEL_DIR/
 } || {
   if [ $? != 0 ]; then
     echo Noooope
@@ -49,8 +38,9 @@ cp $KERNEL_DIR/arch/arm64/boot/Image.gz-dtb $ANYKERNEL_DIR/
 
 cd $ANYKERNEL_DIR/
 zip -r9 $FINAL_ZIP * -x *.zip $FINAL_ZIP
+mkdir -p $KERNEL_DIR/../builds
 mv $FINAL_ZIP $KERNEL_DIR/../builds/$FINAL_ZIP
-
+echo "Your kernel is located in ../builds/$FINAL_ZIP"
 
 else
 echo "You should specify codename of the your device"
