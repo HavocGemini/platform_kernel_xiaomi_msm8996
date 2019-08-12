@@ -13,10 +13,10 @@ KERNEL_DIR=$PWD
 ANYKERNEL_DIR=$KERNEL_DIR/AnyKernel3
 OUTKERNEL_DIR=$KERNEL_DIR/../out
 DATE=$(date +"%d%m%Y")
+TIME=$(date +"%H:%M")
 KERNEL_NAME="Havoc"
 DEVICE="$1"
-VER="testing"
-FINAL_ZIP="$KERNEL_NAME-$DEVICE-$DATE-$VER.zip"
+FINAL_ZIP="$KERNEL_NAME-$DEVICE-$DATE-$TIME.zip"
 
 if [ -e CRSC.sh ]; then . CRSC.sh; fi
 CCACHE=`which ccache`;
